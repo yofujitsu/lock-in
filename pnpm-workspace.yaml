@@ -1,0 +1,6 @@
+# pnpm 11: явное решение по build-скриптам зависимостей.
+# esbuild не нужен postinstall (бинарь приходит через optional-зависимость
+# @esbuild/win32-x64), поэтому отключаем его — иначе pnpm падает
+# с ERR_PNPM_IGNORED_BUILDS / exit 1.
+allowBuilds:
+  esbuild: false
