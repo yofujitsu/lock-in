@@ -52,3 +52,12 @@ export function addHistoryEntry(
   saveHistory(entries, storage);
   return entries;
 }
+
+/** Очищает всю историю. */
+export function clearHistory(storage: StorageLike = localStorage): void {
+  try {
+    storage.setItem(STORAGE_KEY, '[]');
+  } catch {
+    // ignore
+  }
+}

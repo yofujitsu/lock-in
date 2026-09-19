@@ -62,14 +62,18 @@ export function deleteCurrentWord(state: EngineState): EngineState {
 }
 
 /**
- * Перемещает каретку к началу следующего слова. Если следующего слова нет
- * (каретка в конце текста) — состояние возвращается без изменений.
- * charStates и счётчики не меняются.
+ * Перемещает каретку к началу следующего слова и помечает пропущенные
+ * символы как 'skipped'. Если следующего слова нет (каретка в конце текста) —
+ * состояние возвращается без изменений. Счётчики correct/wrong не меняются.
  */
 export function skipWord(state: EngineState): EngineState {
   const next = nextWordStart(state);
   if (next <= state.position) {
     return state;
   }
-  return { ...state, position: next, finished: next >= state.text.length };
+  const charStates = state.charStates.slice();
+  for (let i = state.position; i < next; i += 1) {
+    charStates[i] = 'skipped';
+  }
+  return { ...state, position: next, charStates, finished: next >= state.text.length };
 }

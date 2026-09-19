@@ -1,94 +1,108 @@
-# Typing Trainer
+# lock in
 
-Кросс-платформенный тренажёр слепой печати (аналог [Monkeytype](https://monkeytype.com)).
-Стек: **Tauri 2 + React 18 + TypeScript + Vite**, тесты на **Vitest**.
+A calm, cross-platform typing trainer — an app with a focus on typing without visual noise.
 
-## Возможности
+> **Current version:** 0.2.0 · [Changelog](CHANGELOG.md) · [GitHub](https://github.com/yofujitsu/lock-in)
 
-- Посимвольное отслеживание ввода: верный символ продвигает каретку, ошибка помечается и ждёт исправления, `Backspace` возвращает назад.
-- Метрики в реальном времени: **WPM**, **CPM / speed**, **TPM**, **accuracy**.
-- Словари **EN** (google-10000-english, 1500 слов) и **RU** (OpenSubtitles2018 frequency list, 1500 слов) + предложения-панграммы.
-- Режимы:
-  - **Эхо** — свободная печать без цели (ввод просто отображается).
-  - **Свободный** — набор целевого текста без таймера.
-  - **Таймер** — 15 / 30 / 60 / 120 / 300 секунд.
-- Наборы: **слова** или **предложения**.
-- Горячие клавиши: `Ctrl+Backspace` — стереть слово, `Tab` — пропустить слово.
-- История сессий (localStorage).
-- Светлая / тёмная тема с переключателем.
+## Screenshots
 
-## Стек
+| | |
+|---|---|
+| ![Main page — light theme](public/screenshots/main_page_light_theme.png) | ![Main page — dark theme](public/screenshots/main_page_dark_theme.png) |
+| ![Live typing with errors](public/screenshots/main_page_live_typing_with_errors.png) | ![Session results](public/screenshots/main_page_session_results.png) |
+| ![Theme customization](public/screenshots/theme_customization.png) | ![Profile page](public/screenshots/profile_page.png) |
 
-- **Фронтенд**: React 18, TypeScript, Vite, CSS-переменные (темизация).
-- **Десктоп**: Tauri 2 (Rust — тонкая обвязка окна и упаковки).
-- **Тесты**: Vitest.
+![Echo mode](public/screenshots/endless_echo_mode.png)
 
-## Структура
+## Features
+
+- **Per-character tracking** — correct characters advance the caret, mistakes are marked and wait to be fixed, `Backspace` goes back.
+- **Live metrics** — WPM, CPM/TPM, accuracy, and speed.
+- **Dictionaries** — English and Russian public word lists plus sentence sets.
+- **Modes** — echo (free typing), free, and timed (15 / 30 / 60 / 120 / 300 s).
+- **Shortcuts** — `Ctrl+Backspace` deletes the word, `Tab` skips it.
+- **Session history** — stored locally, with a Profile page and charts.
+- **Theming** — 5 palettes × light/dark, UI and typing fonts, adjustable text size, error display modes, all in a style panel.
+- **Light / dark theme** with system-preference support.
+
+## Tech stack
+
+- **Frontend:** React 18, TypeScript, Vite, CSS custom properties (design tokens).
+- **Desktop:** Tauri 2 (Rust shell for the window and bundling).
+- **Tests:** Vitest.
+
+## Project structure
 
 ```
 src/
-  components/     # TypingArea, TypingTest, EchoMode, Results
-  hooks/          # useTypingSession
-  lib/            # чистое ядро + тесты: engine, metrics, session, dictionary,
-                  # history, echo, wordops, text, format
-  data/           # словари words-en.json / words-ru.json + README
-src-tauri/        # обвязка Tauri 2 (Rust)
+  components/     # TypingArea, TypingTest, EchoMode, Results, Profile, StylePanel, ChangelogModal, charts/
+  hooks/          # useTypingSession, useStyle
+  lib/            # pure core + tests: engine, metrics, session, dictionary, history,
+                  # echo, wordops, text, format, stats, style, changelog
+  data/           # word lists (words-en.json / words-ru.json)
+src-tauri/        # Tauri 2 shell
 scripts/          # fetch-dictionaries.mjs, generate-icon.mjs
 ```
 
-## Запуск
+## Getting started
 
-### Требования
+### Prerequisites
 
-- Node.js ≥ 18 и [pnpm](https://pnpm.io).
-- Для десктопа: [Rust](https://rustup.rs) и на Windows — **MSVC C++ Build Tools** (`link.exe`).
+- Node.js ≥ 18 and [pnpm](https://pnpm.io).
+- For the desktop build: [Rust](https://rustup.rs), and on Windows the **MSVC C++ Build Tools** (`link.exe`).
 
-### Разработка
+### Development
 
 ```bash
 pnpm install
-pnpm dev        # фронтенд (Vite)
-pnpm test       # юнит-тесты
-pnpm typecheck  # проверка типов
-pnpm build      # сборка фронтенда
+pnpm dev        # frontend (Vite)
+pnpm test       # unit tests
+pnpm typecheck  # type check
+pnpm build      # frontend build
 ```
 
-### Десктоп (Tauri)
+### Desktop
 
 ```bash
-pnpm tauri dev     # запуск в dev-режиме
-pnpm tauri build   # релизная сборка
+pnpm tauri dev     # run in dev mode
+pnpm tauri build   # production build (NSIS .exe installer on Windows)
 ```
 
-> На Windows Rust-сборка требует MSVC C++ Build Tools:
-> `winget install Microsoft.VisualStudio.2022.BuildTools` (компонент «Desktop development with C++»).
-> Альтернатива — GNU-тулчейн: `rustup toolchain install stable-x86_64-pc-windows-gnu` (+ mingw-w64).
+On Windows the Rust build requires MSVC C++ Build Tools:
 
-## Метрики
+```powershell
+winget install Microsoft.VisualStudio.2022.BuildTools
+```
 
-| Метрика | Формула |
+## Metrics
+
+| Metric | Formula |
 |---|---|
-| WPM | (верные символы / 5) / минуты — 1 слово = 5 символов |
-| CPM / speed | верные символы / минуты |
-| TPM | все нажатия (верные + ошибочные) / минуты |
-| Accuracy | верные / (верные + ошибочные), доля 0..1 |
+| WPM | (correct characters / 5) / minutes — 1 word = 5 characters |
+| CPM / speed | correct characters / minutes |
+| TPM | all keystrokes (correct + wrong) / minutes |
+| Accuracy | correct / (correct + wrong), 0..1 |
 
-Таймер стартует с первого печатного символа (стандарт Monkeytype).
+The timer starts on the first keystroke (the Monkeytype convention).
 
-## Словари
+## Dictionaries (yet being updated)
 
-- **EN**: [google-10000-english](https://github.com/first20hours/google-10000-english) — топ-1500.
-- **RU**: [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (OpenSubtitles2018) — топ-1500.
+- **EN** — [google-10000-english](https://github.com/first20hours/google-10000-english) (top 1500).
+- **RU** — [FrequencyWords](https://github.com/hermitdave/FrequencyWords) / OpenSubtitles2018 (top 1500).
 
-Списки лежат в `src/data/*.json`. Перегенерация: `node scripts/fetch-dictionaries.mjs`.
-Источники и лицензии — в `src/data/README.md`.
+Word lists live in `src/data/*.json`; regenerate with `node scripts/fetch-dictionaries.mjs`. See `src/data/README.md` for sources and licenses.
 
-## Ключевые решения
+## Theming
 
-- Ввод по `e.key` (фактический символ), а не `e.code` — раскладка EN/RU не важна.
-- Ядро чистое (без DOM) и покрыто тестами — логика отделена от UI.
-- Тема через CSS-переменные (`:root` / `[data-theme='dark']`) с переключателем.
+The whole UI is driven by design tokens (`--bg`, `--card`, `--line`, `--typed`, `--accent`, `--err`, fonts, and text size). Now 5 palettes are bundled — **Dusk**, **Cocoa**, **Mocha Sage**, **Mushroom**, and **Espresso** — each with light and dark themes. And planning adding more. The style panel also lets you pick UI/typing fonts, adjust the typing text size, and switch error styles.
 
-## Лицензия
+## Releasing
+
+1. Bump the version in `package.json`, `src-tauri/tauri.conf.json`, and `src/lib/changelog.ts`.
+2. Add a new entry to `CHANGELOG.md` (Keep a Changelog).
+3. Commit and tag: `git tag v0.2.0 && git push --tags`.
+4. Build: `pnpm tauri build` — the installer lands in `src-tauri/target/release/bundle/`.
+
+## License
 
 [MIT](LICENSE)

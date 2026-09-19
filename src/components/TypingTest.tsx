@@ -13,14 +13,15 @@ interface Props {
   contentType: ContentType;
   history: HistoryEntry[];
   onFinish: (entry: HistoryEntry) => void;
+  suspended: boolean;
 }
 
-export function TypingTest({ text, seconds, language, contentType, history, onFinish }: Props) {
+export function TypingTest({ text, seconds, language, contentType, history, onFinish, suspended }: Props) {
   const { snapshot, input, restart, deleteWord, skipWord } = useTypingSession({ text, seconds });
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // После завершения отдаём клавишам обычное поведение (Tab/фокус по кнопкам).
+      if (suspended) return;
       if (snapshot.finished) return;
       if (e.metaKey || e.altKey) return;
       if (e.key === 'Tab') {
@@ -38,7 +39,7 @@ export function TypingTest({ text, seconds, language, contentType, history, onFi
         input(e.key);
       }
     },
-    [snapshot.finished, input, deleteWord, skipWord],
+    [suspended, snapshot.finished, input, deleteWord, skipWord],
   );
 
   useEffect(() => {
@@ -46,7 +47,6 @@ export function TypingTest({ text, seconds, language, contentType, history, onFi
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onKeyDown]);
 
-  // Сохраняем результат в историю ровно один раз при завершении сессии.
   const recordedRef = useRef(false);
   useEffect(() => {
     if (snapshot.finished && !recordedRef.current) {
@@ -73,25 +73,25 @@ export function TypingTest({ text, seconds, language, contentType, history, onFi
     <>
       <div className="stats">
         <div className="stat-item">
-          <span className="stat-label">WPM</span>
           <span className="stat-value">{snapshot.metrics.wpm.toFixed(1)}</span>
+          <span className="stat-label">WPM</span>
         </div>
         <div className="stat-item">
-          <span className="stat-label">CPM</span>
           <span className="stat-value">{snapshot.metrics.cpm.toFixed(1)}</span>
+          <span className="stat-label">CPM</span>
         </div>
         <div className="stat-item">
-          <span className="stat-label">Точность</span>
           <span className="stat-value">{snapshot.metrics.accuracyPercent.toFixed(1)}%</span>
+          <span className="stat-label">accuracy</span>
         </div>
         <div className="stat-item">
-          <span className="stat-label">Время</span>
           <span className="stat-value">{formatTime(snapshot.elapsedMs)}</span>
+          <span className="stat-label">time</span>
         </div>
         {seconds !== null && (
           <div className="stat-item">
-            <span className="stat-label">Осталось</span>
             <span className="stat-value">{formatTime(snapshot.timeLeftMs ?? 0)}</span>
+            <span className="stat-label">left</span>
           </div>
         )}
       </div>
@@ -99,16 +99,16 @@ export function TypingTest({ text, seconds, language, contentType, history, onFi
       {finished ? (
         <Results metrics={snapshot.metrics} onRestart={restart} history={history} />
       ) : (
-        <TypingArea engine={snapshot.engine} />
+        <TypingArea engine={snapshot.engine} started={snapshot.started} />
       )}
 
       <p className="hint">
         <span className="kbd">Ctrl+Backspace</span>
-        <span>стереть слово</span>
+        <span>delete word</span>
         <span className="kbd">Tab</span>
-        <span>пропустить слово</span>
+        <span>skip word</span>
         <span className="kbd">Backspace</span>
-        <span>назад</span>
+        <span>back</span>
       </p>
     </>
   );

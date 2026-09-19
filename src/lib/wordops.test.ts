@@ -85,11 +85,14 @@ describe('deleteCurrentWord', () => {
 });
 
 describe('skipWord', () => {
-  it('перепрыгивает к началу следующего слова из середины слова', () => {
+  it('перепрыгивает к началу следующего слова и помечает пропущенное', () => {
     const s = at('ab cd ef', 1);
     const r = skipWord(s);
     expect(r.position).toBe(3);
-    expect(r.charStates).toBe(s.charStates);
+    expect(r.charStates[0]).toBe('pending');
+    expect(r.charStates[1]).toBe('skipped');
+    expect(r.charStates[2]).toBe('skipped');
+    expect(r.charStates[3]).toBe('pending');
     expect(r.correct).toBe(0);
     expect(r.wrong).toBe(0);
   });

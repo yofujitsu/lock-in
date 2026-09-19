@@ -2,9 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { countWords, createEcho, echoInput, type EchoState } from '../lib/echo';
 import { formatTime } from '../lib/format';
 
-export function EchoMode() {
+interface Props {
+  suspended: boolean;
+}
+
+export function EchoMode({ suspended }: Props) {
   const [state, setState] = useState<EchoState>(() => createEcho());
   const [stopped, setStopped] = useState(false);
+  const [started, setStarted] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const startedAtRef = useRef<number | null>(null);
 
@@ -18,12 +23,14 @@ export function EchoMode() {
   const restart = useCallback(() => {
     setState(createEcho());
     setStopped(false);
+    setStarted(false);
     setElapsedMs(0);
     startedAtRef.current = null;
   }, []);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (suspended) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (stopped) return;
       if (e.key === 'Escape') {
@@ -33,11 +40,14 @@ export function EchoMode() {
       }
       if (e.key.length === 1 || e.key === 'Backspace') {
         e.preventDefault();
-        if (startedAtRef.current === null) startedAtRef.current = performance.now();
+        if (startedAtRef.current === null) {
+          startedAtRef.current = performance.now();
+          setStarted(true);
+        }
         setState((s) => echoInput(s, e.key));
       }
     },
-    [stop, stopped],
+    [suspended, stopped, stop],
   );
 
   useEffect(() => {
@@ -48,22 +58,22 @@ export function EchoMode() {
   if (stopped) {
     return (
       <div className="results">
-        <h2>Эхо-режим завершён</h2>
+        <h2>Echo finished</h2>
         <div className="results-grid">
           <div className="stat">
-            <div className="label">Символов</div>
+            <div className="label">Characters</div>
             <div className="value">{state.text.length}</div>
           </div>
           <div className="stat">
-            <div className="label">Слов</div>
+            <div className="label">Words</div>
             <div className="value">{countWords(state.text)}</div>
           </div>
           <div className="stat">
-            <div className="label">Время</div>
+            <div className="label">Time</div>
             <div className="value">{formatTime(elapsedMs)}</div>
           </div>
         </div>
-        <button onClick={restart}>↻ Начать заново</button>
+        <button onClick={restart}>↻ Start over</button>
       </div>
     );
   }
@@ -72,19 +82,19 @@ export function EchoMode() {
     <>
       <div className="echo-toolbar">
         <div className="echo-summary">
-          <span>Символов {state.text.length}</span>
-          <span>Слов {countWords(state.text)}</span>
+          <span>Characters {state.text.length}</span>
+          <span>Words {countWords(state.text)}</span>
         </div>
-        <button onClick={stop}>Стоп</button>
+        <button onClick={stop}>Stop</button>
       </div>
       <div className="echo-area">
         {state.text}
-        <span className="caret" />
+        <span className={`caret${started ? ' caret-active' : ''}`} />
       </div>
       <p className="hint">
-        <span>Печатайте что угодно — текст просто отображается.</span>
+        <span>Type anything — it's just displayed.</span>
         <span className="kbd">Esc</span>
-        <span>завершить</span>
+        <span>finish</span>
       </p>
     </>
   );

@@ -12,7 +12,7 @@
  * Модуль чистый: без DOM, без таймеров — удобно тестировать изолированно от UI.
  */
 
-export type CharStatus = 'pending' | 'correct' | 'wrong';
+export type CharStatus = 'pending' | 'correct' | 'wrong' | 'skipped';
 
 export interface EngineState {
   /** Целевой текст, который нужно набрать. */
