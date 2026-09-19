@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "lock-in",
+  "productName": "lock in",
   "version": "0.2.0",
   "identifier": "com.lockin.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "lock the f..k in",
+        "title": "lock in",
         "width": 900,
         "height": 620,
         "resizable": true
