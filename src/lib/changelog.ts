@@ -15,6 +15,20 @@ export interface ChangelogEntry {
  */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.2.1',
+    date: '2026-09-20',
+    changes: [
+      {
+        type: 'Fixed',
+        items: [
+          'Practice/Profile toggle no longer resizes or animates on switch.',
+          'Updated the desktop build icon (taskbar) and app/file name to "lock in".',
+          'The GitHub button now opens the repository in the system browser.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.0',
     date: '2026-09-20',
     changes: [

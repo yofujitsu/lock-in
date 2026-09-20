@@ -1,11 +1,11 @@
 [package]
-name = "typing-trainer"
-version = "0.1.0"
-description = "Кросс-платформенный тренажёр слепой печати"
+name = "lock-in"
+version = "0.2.1"
+description = "Cross-platform typing trainer"
 edition = "2021"
 
 [lib]
-name = "typing_trainer_lib"
+name = "lock_in_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -13,5 +13,6 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

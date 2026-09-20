@@ -110,11 +110,13 @@ body {
   align-items: center;
   gap: 2px;
   padding: 3px;
+  width: 208px;
   background: var(--line);
   border-radius: 12px;
 }
 
 .nav button {
+  flex: 1;
   border: none;
   background: transparent;
   padding: 7px 16px;
@@ -122,6 +124,7 @@ body {
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
+  transition: none;
 }
 
 .nav button:hover:not(.active) {
@@ -132,6 +135,11 @@ body {
 .nav button.active {
   background: var(--accent);
   color: var(--on-accent);
+}
+
+.nav button:active,
+.seg button:active {
+  transform: none;
 }
 
 /* ---------- Buttons ---------- */
