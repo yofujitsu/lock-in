@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { countWords, createEcho, echoInput, type EchoState } from '../lib/echo';
 import { formatTime } from '../lib/format';
+import { updatePresence } from '../lib/discord';
 
 interface Props {
   suspended: boolean;
@@ -54,6 +55,17 @@ export function EchoMode({ suspended }: Props) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onKeyDown]);
+
+  // Discord Rich Presence
+  useEffect(() => {
+    if (stopped) {
+      updatePresence('Echo Mode', `${countWords(state.text)} words`);
+    } else if (started) {
+      updatePresence('Echo Mode', 'Typing…');
+    } else {
+      updatePresence('Echo Mode', 'Idle');
+    }
+  }, [started, stopped]);
 
   if (stopped) {
     return (
