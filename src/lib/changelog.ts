@@ -15,6 +15,18 @@ export interface ChangelogEntry {
  */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.3.0',
+    date: '2026-09-20',
+    changes: [
+      {
+        type: 'Added',
+        items: [
+          'Discord Rich Presence: the app shows as a Discord activity with the logo and the current mode/status.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.1',
     date: '2026-09-20',
     changes: [

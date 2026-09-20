@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { TypingArea } from './TypingArea';
 import { Results } from './Results';
 import { useTypingSession } from '../hooks/useTypingSession';
+import { updatePresence } from '../lib/discord';
 import { formatTime } from '../lib/format';
 import type { ContentType, Language } from '../lib/dictionary';
 import type { HistoryEntry } from '../lib/history';
@@ -66,6 +67,21 @@ export function TypingTest({ text, seconds, language, contentType, history, onFi
       recordedRef.current = false;
     }
   }, [snapshot.finished]);
+
+  // Discord Rich Presence
+  useEffect(() => {
+    const modeLabel = seconds === null ? 'Free Mode' : `${seconds}s Mode`;
+    if (snapshot.finished) {
+      updatePresence(
+        modeLabel,
+        `${snapshot.metrics.wpm.toFixed(0)} WPM · ${snapshot.metrics.accuracyPercent.toFixed(0)}% accuracy`,
+      );
+    } else if (snapshot.started) {
+      updatePresence(modeLabel, 'Typing…');
+    } else {
+      updatePresence(modeLabel, 'Chilling…');
+    }
+  }, [snapshot.started, snapshot.finished, seconds]);
 
   const finished = snapshot.finished;
 

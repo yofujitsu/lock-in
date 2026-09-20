@@ -2,7 +2,7 @@
 
 A calm, cross-platform typing trainer — an app with a focus on typing without visual noise.
 
-> **Current version:** 0.2.1 · [Changelog](CHANGELOG.md) · [GitHub](https://github.com/yofujitsu/lock-in)
+> **Current version:** 0.3.0 · [Changelog](CHANGELOG.md) · [GitHub](https://github.com/yofujitsu/lock-in)
 
 ## Screenshots
 
@@ -24,6 +24,7 @@ A calm, cross-platform typing trainer — an app with a focus on typing without 
 - **Session history** — stored locally, with a Profile page and charts.
 - **Theming** — 5 palettes × light/dark, UI and typing fonts, adjustable text size, error display modes, all in a style panel.
 - **Light / dark theme** with system-preference support.
+- **Discord Rich Presence** — shows the app as a Discord activity with the logo and the current mode/status.
 
 ## Tech stack
 
@@ -98,10 +99,20 @@ The whole UI is driven by design tokens (`--bg`, `--card`, `--line`, `--typed`, 
 
 ## Releasing
 
-1. Bump the version in `package.json`, `src-tauri/tauri.conf.json`, and `src/lib/changelog.ts`.
+Releases are built automatically by GitHub Actions (`.github/workflows/release.yml`) when a `v*` tag is pushed.
+
+1. Bump the version in `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src/lib/changelog.ts`.
 2. Add a new entry to `CHANGELOG.md` (Keep a Changelog).
-3. Commit and tag: `git tag v0.2.0 && git push --tags`.
-4. Build: `pnpm tauri build` — the installer lands in `src-tauri/target/release/bundle/`.
+3. Commit, then tag and push:
+
+   ```bash
+   git add -A && git commit -m "chore: release v0.3.0"
+   git tag v0.3.0 && git push --tags
+   ```
+
+4. GitHub Actions builds installers for Windows/macOS/Linux and creates a **draft release** — review it and hit **Publish**.
+
+To build manually instead: `pnpm tauri build` (the installer lands in `src-tauri/target/release/bundle/`).
 
 ## License
 
