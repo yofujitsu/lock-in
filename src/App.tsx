@@ -7,9 +7,12 @@ import { Profile } from './components/Profile';
 import { ChangelogModal } from './components/ChangelogModal';
 import { StylePanel } from './components/StylePanel';
 import { useStyle } from './hooks/useStyle';
+import { useAiSettings } from './hooks/useAiSettings';
+import { useAiWords } from './hooks/useAiWords';
 import { resolveTheme } from './lib/style';
 import {
   generateText,
+  STATIC_SOURCE,
   wordTopicLabel,
   WORD_TOPICS,
   type ContentType,
@@ -47,6 +50,9 @@ export default function App() {
   const [language, setLanguage] = useState<Language>('en');
   const [contentType, setContentType] = useState<ContentType>('words');
   const [wordTopic, setWordTopic] = useState<WordTopic>('general');
+  const [customMode, setCustomMode] = useState(false);
+  const aiSettings = useAiSettings();
+  const ai = useAiWords();
   const [nonce, setNonce] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
   const [styleOpen, setStyleOpen] = useState(false);
@@ -83,9 +89,19 @@ export default function App() {
     if (styleOpen) stylePanelRef.current?.focus();
   }, [styleOpen]);
 
+  const activeCustomList = customMode ? (ai.customList ?? undefined) : undefined;
   const text = useMemo(
-    () => generateText(language, contentType, mode === 'timed' ? seconds : null, wordTopic),
-    [language, contentType, seconds, mode, nonce, wordTopic],
+    () =>
+      generateText(
+        language,
+        contentType,
+        mode === 'timed' ? seconds : null,
+        wordTopic,
+        Math.random,
+        STATIC_SOURCE,
+        activeCustomList,
+      ),
+    [language, contentType, seconds, mode, nonce, wordTopic, activeCustomList],
   );
 
   const handleFinish = useCallback((entry: HistoryEntry) => {
@@ -153,7 +169,15 @@ export default function App() {
               </svg>
             </button>
             {styleOpen && (
-              <StylePanel ref={stylePanelRef} style={style} onUpdate={update} onSelectPalette={selectPalette} onReset={reset} />
+              <StylePanel
+                ref={stylePanelRef}
+                style={style}
+                onUpdate={update}
+                onSelectPalette={selectPalette}
+                onReset={reset}
+                aiSettings={aiSettings.settings}
+                onUpdateAi={aiSettings.update}
+              />
             )}
           </div>
           <button className="icon-btn" onClick={select(toggleTheme)} aria-label="Toggle theme" title="Light / dark theme">
@@ -254,20 +278,58 @@ export default function App() {
                   </div>
                 </div>
                 {contentType === 'words' && (
-                  <div className="group">
-                    <div className="group-label">Topic</div>
-                    <div className="seg">
-                      {WORD_TOPICS.map((t) => (
+                  <>
+                    <div className="group">
+                      <div className="group-label">Topic</div>
+                      <div className="seg">
+                        {WORD_TOPICS.map((t) => (
+                          <button
+                            key={t}
+                            className={!customMode && wordTopic === t ? 'active' : ''}
+                            onClick={select(() => {
+                              setCustomMode(false);
+                              setWordTopic(t);
+                            })}
+                          >
+                            {wordTopicLabel(t)}
+                          </button>
+                        ))}
                         <button
-                          key={t}
-                          className={wordTopic === t ? 'active' : ''}
-                          onClick={select(() => setWordTopic(t))}
+                          className={customMode ? 'active' : ''}
+                          onClick={select(() => setCustomMode(true))}
                         >
-                          {wordTopicLabel(t)}
+                          Custom
                         </button>
-                      ))}
+                      </div>
                     </div>
-                  </div>
+                    {customMode && (
+                      <div className="group">
+                        <div className="group-label">Custom topic</div>
+                        <div className="ai-row">
+                          <input
+                            className="ai-input"
+                            type="text"
+                            placeholder="e.g. sailing"
+                            value={ai.customTopic}
+                            onChange={(e) => ai.setCustomTopic(e.target.value)}
+                          />
+                          <button
+                            className="ai-btn"
+                            disabled={ai.busy || !ai.customTopic.trim()}
+                            onClick={() => ai.generate(language, ai.customTopic.trim())}
+                          >
+                            {ai.busy ? '…' : 'Generate'}
+                          </button>
+                          {ai.customList && (
+                            <button className="ai-btn" onClick={() => ai.generate(language, ai.customTopic.trim(), true)}>
+                              Regenerate
+                            </button>
+                          )}
+                        </div>
+                        {ai.error && <p className="ai-error">{ai.error}</p>}
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}

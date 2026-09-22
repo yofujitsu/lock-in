@@ -621,6 +621,49 @@ button:focus-visible {
   margin: 0 0 8px;
 }
 
+.style-text {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  margin: 2px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--typed);
+  font-size: 14px;
+}
+
+.ai-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ai-input {
+  flex: 1;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--typed);
+  font-size: 14px;
+}
+
+.ai-btn {
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--typed);
+  cursor: pointer;
+}
+
+.ai-error {
+  color: var(--err);
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+
 .kbd {
   display: inline-block;
   padding: 3px 7px;

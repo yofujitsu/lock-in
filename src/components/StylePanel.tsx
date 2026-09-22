@@ -12,12 +12,15 @@ import {
   type StyleSettings,
   type ThemeMode,
 } from '../lib/style';
+import { type AiSettings } from '../lib/ai';
 
 interface Props {
   style: StyleSettings;
   onUpdate: (patch: Partial<StyleSettings>) => void;
   onSelectPalette: (id: PaletteId) => void;
   onReset: () => void;
+  aiSettings: AiSettings;
+  onUpdateAi: (patch: Partial<AiSettings>) => void;
 }
 
 function swatches(p: (typeof PALETTES)[number], theme: ThemeMode): string[] {
@@ -26,7 +29,7 @@ function swatches(p: (typeof PALETTES)[number], theme: ThemeMode): string[] {
 }
 
 export const StylePanel = forwardRef<HTMLDivElement, Props>(function StylePanel(
-  { style, onUpdate, onSelectPalette, onReset },
+  { style, onUpdate, onSelectPalette, onReset, aiSettings, onUpdateAi },
   ref,
 ) {
   const theme = resolveTheme(style);
@@ -126,6 +129,17 @@ export const StylePanel = forwardRef<HTMLDivElement, Props>(function StylePanel(
           </button>
         </div>
         <div className="style-hint">Type a wrong letter to see how it looks.</div>
+      </section>
+
+      <section className="style-section">
+        <div className="style-label">AI word generator (optional)</div>
+        <label className="style-label" htmlFor="ai-base">API base URL</label>
+        <input id="ai-base" className="style-text" type="text" value={aiSettings.baseUrl} onChange={(e) => onUpdateAi({ baseUrl: e.target.value })} />
+        <label className="style-label" htmlFor="ai-model">Model</label>
+        <input id="ai-model" className="style-text" type="text" value={aiSettings.model} onChange={(e) => onUpdateAi({ model: e.target.value })} />
+        <label className="style-label" htmlFor="ai-key">API key</label>
+        <input id="ai-key" className="style-text" type="password" value={aiSettings.apiKey} onChange={(e) => onUpdateAi({ apiKey: e.target.value })} placeholder="sk-..." />
+        <div className="style-hint">Stored locally; sent only to the base URL above.</div>
       </section>
 
       <button className="style-reset" onClick={onReset}>
