@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createEngine, handleKey, isPrintableKey } from './engine';
+import { createEngine, equivalent, handleKey, isPrintableKey } from './engine';
 
 describe('isPrintableKey', () => {
   it('считает одиночные символы печатными, включая пробел', () => {
@@ -84,5 +84,40 @@ describe('handleKey', () => {
   it('пустой текст сразу завершён', () => {
     const s = createEngine('');
     expect(s.finished).toBe(true);
+  });
+});
+
+describe('equivalent', () => {
+  it('считает типографские кавычки эквивалентными ASCII', () => {
+    expect(equivalent('"', '“')).toBe(true);
+    expect(equivalent('"', '”')).toBe(true);
+    expect(equivalent('"', '«')).toBe(true);
+    expect(equivalent('"', '»')).toBe(true);
+    expect(equivalent("'", '’')).toBe(true);
+  });
+
+  it('считает тире эквивалентными дефису', () => {
+    expect(equivalent('-', '–')).toBe(true);
+    expect(equivalent('-', '—')).toBe(true);
+  });
+
+  it('различает обычные символы', () => {
+    expect(equivalent('a', 'b')).toBe(false);
+    expect(equivalent('ё', 'е')).toBe(false);
+  });
+});
+
+describe('handleKey: типографская пунктуация', () => {
+  it('нажатие ASCII-кавычки принимает «ёлочку» как correct', () => {
+    const s = handleKey(createEngine('«Привет»'), '"');
+    expect(s.position).toBe(1);
+    expect(s.charStates[0]).toBe('correct');
+    expect(s.correct).toBe(1);
+  });
+
+  it('нажатие дефиса принимает длинное тире как correct и завершает текст', () => {
+    const s = handleKey(createEngine('—'), '-');
+    expect(s.finished).toBe(true);
+    expect(s.charStates).toEqual(['correct']);
   });
 });

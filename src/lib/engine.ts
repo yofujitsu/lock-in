@@ -45,6 +45,18 @@ export function isPrintableKey(key: string): boolean {
   return key.length === 1;
 }
 
+const EQUIVALENTS: Record<string, string> = {
+  '“': '"', '”': '"', '„': '"', '«': '"', '»': '"', // двойные кавычки → "
+  '’': "'", '‘': "'",                                 // одинарные → '
+  '–': '-', '—': '-',                                 // тире → -
+};
+
+/** Считает типографские кавычки/тире эквивалентными ASCII-нажатиям. */
+export function equivalent(a: string, b: string): boolean {
+  const norm = (c: string) => EQUIVALENTS[c] ?? c;
+  return norm(a) === norm(b);
+}
+
 /**
  * Обрабатывает одно нажатие и возвращает новое состояние (иммутабельно).
  * Модификаторы и служебные клавиши (Shift/Ctrl/Enter/Tab/…) игнорируются.
@@ -64,7 +76,7 @@ export function handleKey(state: EngineState, key: string): EngineState {
 
   const expected = state.text[state.position];
 
-  if (key === expected) {
+  if (key === expected || equivalent(key, expected)) {
     const position = state.position + 1;
     const charStates = state.charStates.slice();
     charStates[state.position] = 'correct';
