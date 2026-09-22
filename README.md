@@ -2,7 +2,7 @@
 
 A calm, cross-platform typing trainer — an app with a focus on typing without visual noise.
 
-> **Current version:** 0.4.0 · [Changelog](CHANGELOG.md) · [GitHub](https://github.com/yofujitsu/lock-in)
+> **Current version:** 0.5.0 · [Changelog](CHANGELOG.md) · [GitHub](https://github.com/yofujitsu/lock-in)
 
 ## Screenshots
 
@@ -18,7 +18,8 @@ A calm, cross-platform typing trainer — an app with a focus on typing without 
 
 - **Per-character tracking** — correct characters advance the caret, mistakes are marked and wait to be fixed, `Backspace` goes back.
 - **Live metrics** — WPM, CPM/TPM, accuracy, and speed.
-- **Dictionaries** — English and Russian public word lists plus sentence sets.
+- **Dictionaries** — English and Russian word lists (with thematic topics: general, programming, tech), plus punctuation-rich sentences, quotes, and short passages.
+- **AI word-list generator** — type any topic and generate a custom word list with your own LLM API key (any OpenAI-compatible endpoint: OpenAI, DeepSeek, Groq, …).
 - **Modes** — echo (free typing), free, and timed (15 / 30 / 60 / 120 / 300 s).
 - **Shortcuts** — `Ctrl+Backspace` deletes the word, `Tab` skips it.
 - **Session history** — stored locally, with a Profile page and charts.
@@ -29,7 +30,7 @@ A calm, cross-platform typing trainer — an app with a focus on typing without 
 ## Tech stack
 
 - **Frontend:** React 18, TypeScript, Vite, CSS custom properties (design tokens).
-- **Desktop:** Tauri 2 (Rust shell for the window and bundling).
+- **Desktop:** Tauri 2 (Rust shell for the window, Discord presence, and the AI generation call).
 - **Tests:** Vitest.
 
 ## Project structure
@@ -37,11 +38,11 @@ A calm, cross-platform typing trainer — an app with a focus on typing without 
 ```
 src/
   components/     # TypingArea, TypingTest, EchoMode, Results, Profile, StylePanel, ChangelogModal, charts/
-  hooks/          # useTypingSession, useStyle
+  hooks/          # useTypingSession, useStyle, useAiSettings, useAiWords
   lib/            # pure core + tests: engine, metrics, session, dictionary, history,
-                  # echo, wordops, text, format, stats, style, changelog
-  data/           # word lists (words-en.json / words-ru.json)
-src-tauri/        # Tauri 2 shell
+                  # echo, wordops, text, format, stats, style, changelog, ai, keys
+  data/           # word lists and thematic texts (words/sentences/quotes/passages/topics)
+src-tauri/        # Tauri 2 shell (Discord presence, AI generation command)
 scripts/          # fetch-dictionaries.mjs, generate-icon.mjs
 ```
 
@@ -86,12 +87,24 @@ winget install Microsoft.VisualStudio.2022.BuildTools
 
 The timer starts on the first keystroke (the Monkeytype convention).
 
-## Dictionaries (yet being updated)
+## Dictionaries
 
-- **EN** — [google-10000-english](https://github.com/first20hours/google-10000-english) (top 1500).
-- **RU** — [FrequencyWords](https://github.com/hermitdave/FrequencyWords) / OpenSubtitles2018 (top 1500).
+- **Word lists** — EN: [google-10000-english](https://github.com/first20hours/google-10000-english) (top 1500); RU: [FrequencyWords](https://github.com/hermitdave/FrequencyWords) / OpenSubtitles2018 (top 1500). Thematic topics (programming, tech) are hand-curated.
+- **Sentences, quotes, passages** — curated public-domain and original prose with real punctuation, for EN and RU.
 
-Word lists live in `src/data/*.json`; regenerate with `node scripts/fetch-dictionaries.mjs`. See `src/data/README.md` for sources and licenses.
+Word lists and thematic texts live in `src/data/*.json`; word lists regenerate with `node scripts/fetch-dictionaries.mjs`. See `src/data/README.md` for sources and licenses.
+
+## AI word generator
+
+The **Words** mode has a **Custom** topic option: type a topic, hit **Generate**, and the app asks a cloud LLM (bring-your-own-key) for a list of words, sanitizes them, caches them locally, and feeds them into the test.
+
+Configure it in the style panel (**AI word generator** section):
+
+- **API base URL** — any OpenAI-compatible endpoint, e.g. `https://api.deepseek.com` or `https://api.openai.com/v1`.
+- **Model** — e.g. `deepseek-chat` or `gpt-4o-mini`.
+- **API key** — your own key, stored locally in the app config and sent only to the base URL above.
+
+On the desktop build the request goes through Rust (`reqwest`); in the browser dev preview it uses a direct `fetch` (subject to the provider's CORS policy).
 
 ## Theming
 
@@ -106,8 +119,8 @@ Releases are built automatically by GitHub Actions (`.github/workflows/release.y
 3. Commit, then tag and push:
 
    ```bash
-   git add -A && git commit -m "chore: release v0.3.0"
-   git tag v0.3.0 && git push --tags
+   git add -A && git commit -m "chore: release v0.5.0"
+   git tag v0.5.0 && git push --tags
    ```
 
 4. GitHub Actions builds installers for Windows/macOS/Linux and creates a **draft release** — review it and hit **Publish**.
