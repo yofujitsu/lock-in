@@ -5,6 +5,7 @@ import {
   getCustomList,
   loadAiSettings,
   loadCustomLists,
+  matchCustomList,
   sanitizeWordList,
   saveAiSettings,
   setCustomList,
@@ -72,6 +73,16 @@ describe('custom list cache', () => {
 
   it('loadCustomLists возвращает {} при битом JSON', () => {
     expect(loadCustomLists(memStorage({ 'ai.customLists': 'not-json' }))).toEqual({});
+  });
+});
+
+describe('matchCustomList', () => {
+  it('возвращает список только при совпадении языка и темы', () => {
+    const list = ['sail'];
+    expect(matchCustomList('en:sailing', list, 'en', 'sailing')).toEqual(['sail']);
+    expect(matchCustomList('en:sailing', list, 'ru', 'sailing')).toBeNull();
+    expect(matchCustomList('en:sailing', list, 'en', 'cooking')).toBeNull();
+    expect(matchCustomList(null, list, 'en', 'sailing')).toBeNull();
   });
 });
 

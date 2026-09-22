@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
-import { generateCustomWords } from '../lib/ai';
+import { customListKey, generateCustomWords, matchCustomList } from '../lib/ai';
 import type { Language } from '../lib/dictionary';
 
 export function useAiWords() {
   const [customTopic, setCustomTopic] = useState('');
   const [customList, setCustomList] = useState<string[] | null>(null);
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,7 +13,9 @@ export function useAiWords() {
     setBusy(true);
     setError(null);
     try {
-      setCustomList(await generateCustomWords(lang, topic, { force }));
+      const words = await generateCustomWords(lang, topic, { force });
+      setCustomList(words);
+      setGeneratedKey(customListKey(lang, topic));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -20,5 +23,10 @@ export function useAiWords() {
     }
   }, []);
 
-  return { customTopic, setCustomTopic, customList, generate, busy, error };
+  const listFor = useCallback(
+    (lang: Language, topic: string) => matchCustomList(generatedKey, customList, lang, topic),
+    [generatedKey, customList],
+  );
+
+  return { customTopic, setCustomTopic, customList, listFor, generate, busy, error };
 }

@@ -86,6 +86,16 @@ export function setCustomList(lang: Language, topic: string, words: string[], st
   saveCustomLists(lists, storage);
 }
 
+/** Возвращает список, только если он был сгенерирован для (lang, topic). */
+export function matchCustomList(
+  generatedKey: string | null,
+  list: string[] | null,
+  lang: Language,
+  topic: string,
+): string[] | null {
+  return generatedKey === customListKey(lang, topic) ? list : null;
+}
+
 export interface AiSettings {
   baseUrl: string;
   model: string;

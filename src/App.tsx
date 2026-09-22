@@ -89,7 +89,7 @@ export default function App() {
     if (styleOpen) stylePanelRef.current?.focus();
   }, [styleOpen]);
 
-  const activeCustomList = customMode ? (ai.customList ?? undefined) : undefined;
+  const activeCustomList = customMode ? (ai.listFor(language, ai.customTopic.trim()) ?? undefined) : undefined;
   const text = useMemo(
     () =>
       generateText(
