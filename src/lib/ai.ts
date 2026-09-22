@@ -29,7 +29,7 @@ export function sanitizeWordList(raw: string, lang: Language): string[] {
         : Array.isArray(parsed?.words)
           ? parsed.words
           : null;
-      if (arr) text = arr.map((v) => (typeof v === 'string' ? v : '')).join(' ');
+      if (arr) text = arr.map((v: unknown) => (typeof v === 'string' ? v : '')).join(' ');
     } catch {
       // не JSON — обрабатываем как текст ниже
     }
