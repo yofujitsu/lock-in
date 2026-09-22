@@ -1,9 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import {
   customListKey,
+  generateCustomWords,
   getCustomList,
+  loadAiSettings,
   loadCustomLists,
   sanitizeWordList,
+  saveAiSettings,
   setCustomList,
 } from './ai';
 import type { StorageLike } from './ai';
@@ -15,6 +18,9 @@ function memStorage(init: Record<string, string> = {}): StorageLike {
     setItem: (k, v) => void m.set(k, v),
   };
 }
+
+beforeEach(() => vi.stubGlobal('window', { __TAURI_INTERNALS__: {} }));
+afterEach(() => vi.unstubAllGlobals());
 
 describe('sanitizeWordList', () => {
   it('парсит JSON-массив и нормализует', () => {
@@ -66,5 +72,56 @@ describe('custom list cache', () => {
 
   it('loadCustomLists возвращает {} при битом JSON', () => {
     expect(loadCustomLists(memStorage({ 'ai.customLists': 'not-json' }))).toEqual({});
+  });
+});
+
+const fakeInvoke = (impl: (cmd: string, args: unknown) => unknown) =>
+  ((cmd: string, args: unknown) => Promise.resolve(impl(cmd, args))) as never;
+
+describe('loadAiSettings / saveAiSettings', () => {
+  it('loadAiSettings вызывает get_ai_settings и возвращает настройки', async () => {
+    const invokeFn = fakeInvoke(() => ({ baseUrl: 'http://x/v1', model: 'm', apiKey: 'k' }));
+    await expect(loadAiSettings(invokeFn)).resolves.toEqual({ baseUrl: 'http://x/v1', model: 'm', apiKey: 'k' });
+  });
+
+  it('saveAiSettings вызывает set_ai_settings', async () => {
+    const calls: Array<[string, unknown]> = [];
+    const invokeFn = fakeInvoke((cmd, args) => void calls.push([cmd, args]));
+    await saveAiSettings({ baseUrl: 'b', model: 'm', apiKey: 'k' }, invokeFn);
+    expect(calls[0][0]).toBe('set_ai_settings');
+  });
+});
+
+describe('generateCustomWords', () => {
+  it('бросает понятную ошибку при пустом ключе', async () => {
+    const invokeFn = fakeInvoke(() => '["sail"]');
+    await expect(
+      generateCustomWords('en', 'sailing', {
+        invokeFn,
+        loadSettings: async () => ({ baseUrl: '', model: '', apiKey: '' }),
+      }),
+    ).rejects.toThrow(/API key/i);
+  });
+
+  it('санитизирует ответ и возвращает слова', async () => {
+    const invokeFn = fakeInvoke(() => '["Sail", "anchor2", "sail"]');
+    const words = await generateCustomWords('en', 'sailing', {
+      invokeFn,
+      loadSettings: async () => ({ baseUrl: '', model: '', apiKey: 'k' }),
+    });
+    expect(words).toEqual(['sail', 'anchor']);
+  });
+
+  it('переиспользует кеш и не зовёт модель повторно', async () => {
+    const storage = memStorage({ 'ai.customLists': JSON.stringify({ 'en:sailing': ['sail'] }) });
+    let called = false;
+    const invokeFn = fakeInvoke(() => (called = true));
+    const words = await generateCustomWords('en', 'sailing', {
+      invokeFn,
+      storage,
+      loadSettings: async () => ({ baseUrl: '', model: '', apiKey: 'k' }),
+    });
+    expect(words).toEqual(['sail']);
+    expect(called).toBe(false);
   });
 });

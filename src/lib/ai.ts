@@ -1,8 +1,14 @@
+import { invoke } from '@tauri-apps/api/core';
 import type { Language } from './dictionary';
 
 export interface StorageLike {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
+}
+
+function defaultStorage(): StorageLike {
+  if (typeof localStorage !== 'undefined') return localStorage;
+  return { getItem: () => null, setItem: () => {} };
 }
 
 const CACHE_KEY = 'ai.customLists';
@@ -53,7 +59,7 @@ export function customListKey(lang: Language, topic: string): string {
   return `${lang}:${topic}`;
 }
 
-export function loadCustomLists(storage: StorageLike = localStorage): CustomLists {
+export function loadCustomLists(storage: StorageLike = defaultStorage()): CustomLists {
   try {
     const raw = storage.getItem(CACHE_KEY);
     return raw ? (JSON.parse(raw) as CustomLists) : {};
@@ -62,7 +68,7 @@ export function loadCustomLists(storage: StorageLike = localStorage): CustomList
   }
 }
 
-export function saveCustomLists(lists: CustomLists, storage: StorageLike = localStorage): void {
+export function saveCustomLists(lists: CustomLists, storage: StorageLike = defaultStorage()): void {
   try {
     storage.setItem(CACHE_KEY, JSON.stringify(lists));
   } catch {
@@ -70,12 +76,74 @@ export function saveCustomLists(lists: CustomLists, storage: StorageLike = local
   }
 }
 
-export function getCustomList(lang: Language, topic: string, storage: StorageLike = localStorage): string[] | null {
+export function getCustomList(lang: Language, topic: string, storage: StorageLike = defaultStorage()): string[] | null {
   return loadCustomLists(storage)[customListKey(lang, topic)] ?? null;
 }
 
-export function setCustomList(lang: Language, topic: string, words: string[], storage: StorageLike = localStorage): void {
+export function setCustomList(lang: Language, topic: string, words: string[], storage: StorageLike = defaultStorage()): void {
   const lists = loadCustomLists(storage);
   lists[customListKey(lang, topic)] = words;
   saveCustomLists(lists, storage);
+}
+
+export interface AiSettings {
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+}
+
+export const DEFAULT_AI_SETTINGS: AiSettings = {
+  baseUrl: 'https://api.openai.com/v1',
+  model: 'gpt-4o-mini',
+  apiKey: '',
+};
+
+const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+
+export async function loadAiSettings(
+  invokeFn: typeof invoke = invoke,
+): Promise<AiSettings> {
+  if (!isTauri()) return { ...DEFAULT_AI_SETTINGS };
+  return invokeFn<AiSettings>('get_ai_settings');
+}
+
+export async function saveAiSettings(
+  settings: AiSettings,
+  invokeFn: typeof invoke = invoke,
+): Promise<void> {
+  if (!isTauri()) return;
+  await invokeFn('set_ai_settings', { settings });
+}
+
+export interface GenerateCustomWordsDeps {
+  invokeFn?: typeof invoke;
+  loadSettings?: () => Promise<AiSettings>;
+  storage?: StorageLike;
+  force?: boolean;
+}
+
+export async function generateCustomWords(
+  lang: Language,
+  topic: string,
+  deps: GenerateCustomWordsDeps = {},
+): Promise<string[]> {
+  const invokeFn = deps.invokeFn ?? invoke;
+  const loadSettings = deps.loadSettings ?? (() => loadAiSettings(invokeFn));
+  const storage = deps.storage ?? defaultStorage();
+
+  if (!deps.force) {
+    const cached = getCustomList(lang, topic, storage);
+    if (cached && cached.length > 0) return cached;
+  }
+
+  const settings = await loadSettings();
+  if (!settings.apiKey.trim()) {
+    throw new Error('Set your API key in the AI settings first.');
+  }
+
+  const raw = await invokeFn<string>('generate_word_list', { lang, topic });
+  const words = sanitizeWordList(raw, lang);
+  if (words.length === 0) throw new Error('The model returned no usable words.');
+  setCustomList(lang, topic, words, storage);
+  return words;
 }
