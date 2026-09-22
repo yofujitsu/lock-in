@@ -4,6 +4,7 @@ import { Results } from './Results';
 import { useTypingSession } from '../hooks/useTypingSession';
 import { updatePresence } from '../lib/discord';
 import { formatTime } from '../lib/format';
+import { keydownAction } from '../lib/keys';
 import type { ContentType, Language } from '../lib/dictionary';
 import type { HistoryEntry } from '../lib/history';
 
@@ -25,20 +26,16 @@ export function TypingTest({ text, attribution, seconds, language, contentType, 
     (e: KeyboardEvent) => {
       if (suspended) return;
       if (snapshot.finished) return;
-      if (e.metaKey || e.altKey) return;
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        skipWord();
-        return;
-      }
-      if (e.key === 'Backspace' && e.ctrlKey) {
-        e.preventDefault();
-        deleteWord();
-        return;
-      }
-      if (e.key.length === 1 || e.key === 'Backspace') {
+      const action = keydownAction(e, e.target);
+      if (action === 'input') {
         e.preventDefault();
         input(e.key);
+      } else if (action === 'deleteWord') {
+        e.preventDefault();
+        deleteWord();
+      } else if (action === 'skipWord') {
+        e.preventDefault();
+        skipWord();
       }
     },
     [suspended, snapshot.finished, input, deleteWord, skipWord],

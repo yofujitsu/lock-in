@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { countWords, createEcho, echoInput, type EchoState } from '../lib/echo';
 import { formatTime } from '../lib/format';
+import { isEditableTarget } from '../lib/keys';
 import { updatePresence } from '../lib/discord';
 
 interface Props {
@@ -32,6 +33,7 @@ export function EchoMode({ suspended }: Props) {
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (suspended) return;
+      if (isEditableTarget(e.target)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (stopped) return;
       if (e.key === 'Escape') {
