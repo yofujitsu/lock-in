@@ -1,0 +1,30 @@
+{
+  "programming": [
+    "array", "async", "binary", "boolean", "buffer", "cache", "callback",
+    "class", "closure", "compiler", "constant", "debug", "deploy", "function",
+    "integer", "interface", "iterator", "lambda", "loop", "method", "module",
+    "object", "parser", "pointer", "queue", "recursion", "refactor", "runtime",
+    "scope", "stack", "syntax", "thread", "variable", "vector", "algorithm",
+    "argument", "assert", "branch", "build", "byte", "cast", "commit",
+    "condition", "constructor", "data", "declare", "enum", "exception", "field",
+    "framework", "generic", "index", "inherit", "input", "library", "link",
+    "logic", "memory", "operator", "output", "package", "parameter", "program",
+    "return", "script", "server", "string", "struct", "test", "type", "value",
+    "void", "while"
+  ],
+  "tech": [
+    "algorithm", "bandwidth", "browser", "cloud", "console", "database",
+    "desktop", "digital", "encryption", "ethernet", "firewall", "firmware",
+    "hardware", "kernel", "keyboard", "laptop", "memory", "monitor", "network",
+    "protocol", "router", "screen", "server", "software", "storage", "system",
+    "terminal", "update", "upload", "wireless", "workstation", "backup",
+    "battery", "bluetooth", "cable", "camera", "chip", "codec", "cursor",
+    "device", "download", "driver", "email", "file", "folder", "gps",
+    "graphics", "interface", "internet", "link", "login", "message", "mobile",
+    "modem", "password", "printer", "processor", "sensor", "speaker",
+    "touchscreen", "usb", "video", "website", "wifi", "antivirus", "broadband",
+    "chatbot", "cryptocurrency", "drone", "ecommerce", "gadget", "headset",
+    "malware", "pixel", "smartphone", "tablet", "telephony", "thumbnail",
+    "virtual", "widget"
+  ]
+}

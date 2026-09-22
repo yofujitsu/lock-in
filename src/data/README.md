@@ -62,3 +62,25 @@ node scripts/fetch-dictionaries.mjs
 Requires Node 22+ (uses global `fetch` and `AbortSignal.timeout`). If a download
 is unreachable, the script falls back to embedded curated lists (≈320 words per
 language) so the JSON files can always be produced.
+
+# Thematic texts (`quotes-*.json`, `sentences-*.json`, `passages-*.json`, `topics-*.json`)
+
+Curated offline content for the quotes / sentences / passages modes and the
+thematic word topics. All text is public-domain (classical authors, proverbs,
+folklore) or original prose written for this project; no material is copied
+from copyrighted works.
+
+| File | Language | Content | Notes |
+| --- | --- | --- | --- |
+| `quotes-en.json` | English | `[{text, source}]` | public-domain authors & proverbs, attributed |
+| `quotes-ru.json` | Russian | `[{text, source}]` | Russian classics (public domain) & proverbs |
+| `sentences-en.json` | English | `string[]` | natural sentences, hand-curated |
+| `sentences-ru.json` | Russian | `string[]` | natural sentences, hand-curated |
+| `passages-en.json` | English | `string[]` | original 2–4 sentence passages |
+| `passages-ru.json` | Russian | `string[]` | original 2–4 sentence passages |
+| `topics-en.json` | English | `{programming, tech}` | hand-curated lowercase single tokens |
+| `topics-ru.json` | Russian | `{programming, tech}` | hand-curated lowercase single tokens |
+
+Constraints: sentences/quotes/passages end with punctuation and contain no
+double spaces; topic words match `[a-z]+` (EN) / `[а-яё]+` (RU), lowercase,
+single token. Verified by `src/lib/dictionaryData.test.ts`.
