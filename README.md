@@ -2,7 +2,7 @@
 
 A calm, cross-platform typing trainer — an app with a focus on typing without visual noise.
 
-> **Current version:** 0.3.0 · [Changelog](CHANGELOG.md) · [GitHub](https://github.com/yofujitsu/lock-in)
+> **Current version:** 0.4.0 · [Changelog](CHANGELOG.md) · [GitHub](https://github.com/yofujitsu/lock-in)
 
 ## Screenshots
 
