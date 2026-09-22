@@ -64,19 +64,16 @@ fn ai_settings(app: &tauri::AppHandle) -> Result<AiSettings, String> {
     let store = app.store("settings.json").map_err(|e| e.to_string())?;
     let base_url = store
         .get("aiBaseUrl")
-        .and_then(|v| v.as_str())
-        .unwrap_or(DEFAULT_BASE_URL)
-        .to_string();
+        .and_then(|v| v.as_str().map(str::to_string))
+        .unwrap_or_else(|| DEFAULT_BASE_URL.to_string());
     let model = store
         .get("aiModel")
-        .and_then(|v| v.as_str())
-        .unwrap_or(DEFAULT_MODEL)
-        .to_string();
+        .and_then(|v| v.as_str().map(str::to_string))
+        .unwrap_or_else(|| DEFAULT_MODEL.to_string());
     let api_key = store
         .get("aiApiKey")
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string();
+        .and_then(|v| v.as_str().map(str::to_string))
+        .unwrap_or_default();
     Ok(AiSettings { base_url, model, api_key })
 }
 
@@ -88,15 +85,9 @@ fn get_ai_settings(app: tauri::AppHandle) -> Result<AiSettings, String> {
 #[tauri::command]
 fn set_ai_settings(app: tauri::AppHandle, settings: AiSettings) -> Result<(), String> {
     let store = app.store("settings.json").map_err(|e| e.to_string())?;
-    store
-        .set("aiBaseUrl", serde_json::json!(settings.base_url))
-        .map_err(|e| e.to_string())?;
-    store
-        .set("aiModel", serde_json::json!(settings.model))
-        .map_err(|e| e.to_string())?;
-    store
-        .set("aiApiKey", serde_json::json!(settings.api_key))
-        .map_err(|e| e.to_string())?;
+    store.set("aiBaseUrl", serde_json::json!(settings.base_url));
+    store.set("aiModel", serde_json::json!(settings.model));
+    store.set("aiApiKey", serde_json::json!(settings.api_key));
     store.save().map_err(|e| e.to_string())
 }
 
