@@ -124,10 +124,12 @@ async fn generate_word_list(app: tauri::AppHandle, lang: String, topic: String) 
         .map_err(|e| format!("network error: {e}"))?;
 
     let status = resp.status();
-    let body: serde_json::Value = resp.json().await.map_err(|e| format!("bad response: {e}"))?;
+    let text = resp.text().await.map_err(|e| format!("read response: {e}"))?;
     if !status.is_success() {
-        return Err(format!("API error {status}: {body}"));
+        return Err(format!("API error {status}: {text}"));
     }
+    let body: serde_json::Value =
+        serde_json::from_str(&text).map_err(|e| format!("bad response ({status}): {e}"))?;
 
     let content = body["choices"][0]["message"]["content"]
         .as_str()
