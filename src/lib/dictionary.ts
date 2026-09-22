@@ -98,8 +98,9 @@ export function generateWords(
   rng: Rng = Math.random,
   topic: WordTopic = 'general',
   source: TextSource = STATIC_SOURCE,
+  customList?: string[],
 ): string {
-  const words = source.words(lang, topic);
+  const words = customList ?? source.words(lang, topic);
   const out: string[] = [];
   for (let i = 0; i < count; i++) out.push(pick(words, rng));
   return out.join(' ');
@@ -164,6 +165,7 @@ export function generateText(
   wordTopic: WordTopic = 'general',
   rng: Rng = Math.random,
   source: TextSource = STATIC_SOURCE,
+  customList?: string[],
 ): GeneratedText {
   switch (contentType) {
     case 'sentences': {
@@ -180,7 +182,7 @@ export function generateText(
     }
     default: {
       const count = seconds === null ? 80 : Math.max(80, Math.min(seconds * 2, 400));
-      return { text: generateWords(lang, count, rng, wordTopic, source) };
+      return { text: generateWords(lang, count, rng, wordTopic, source, customList) };
     }
   }
 }

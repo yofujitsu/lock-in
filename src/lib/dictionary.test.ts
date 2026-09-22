@@ -45,6 +45,10 @@ describe('generateWords', () => {
       }
     }
   });
+
+  it('customList переопределяет слова темы', () => {
+    expect(generateWords('en', 3, zeroRng, 'general', undefined, ['alpha', 'beta'])).toBe('alpha alpha alpha');
+  });
 });
 
 describe('generateSentences', () => {
@@ -103,6 +107,11 @@ describe('generateText', () => {
     const res = generateText('en', 'quotes', 30, 'general', zeroRng);
     expect(res.text).toBe(`${q.text} ${q.text} ${q.text}`);
     expect(res.attribution).toBe(`${q.source} · ${q.source} · ${q.source}`);
+  });
+
+  it('words с customList берёт слова из списка, а не из темы', () => {
+    const res = generateText('en', 'words', null, 'general', zeroRng, undefined, ['x', 'y']);
+    expect(res.text).toBe(Array(80).fill('x').join(' '));
   });
 });
 
