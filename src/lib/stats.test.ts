@@ -59,10 +59,22 @@ describe('statsByMode', () => {
   });
 });
 
-describe('statsByLanguage / statsByContentType', () => {
-  it('группирует и даёт понятные лейблы', () => {
+describe('statsByLanguage', () => {
+  it('группирует и даёт лейбл', () => {
     expect(statsByLanguage([entry({ id: 'a', language: 'ru' })])[0].label).toBe('RU');
-    expect(statsByContentType([entry({ id: 'a', contentType: 'sentences' })])[0].label).toBe('Sentences');
+  });
+});
+
+describe('statsByContentType', () => {
+  it('группирует по всем типам с подписями', () => {
+    const res = statsByContentType([
+      entry({ id: 'a', contentType: 'words', wpm: 40 }),
+      entry({ id: 'b', contentType: 'sentences', wpm: 50 }),
+      entry({ id: 'c', contentType: 'quotes', wpm: 60 }),
+      entry({ id: 'd', contentType: 'passages', wpm: 70 }),
+    ]);
+    expect(res.map((g) => g.label)).toEqual(['Words', 'Sentences', 'Quotes', 'Passages']);
+    expect(res.find((g) => g.key === 'quotes')!.avgWpm).toBe(60);
   });
 });
 

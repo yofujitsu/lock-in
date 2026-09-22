@@ -1,4 +1,5 @@
 import type { HistoryEntry } from './history';
+import { contentTypeLabel, type ContentType } from './dictionary';
 
 export interface Summary {
   totalSessions: number;
@@ -95,13 +96,15 @@ export function statsByLanguage(entries: HistoryEntry[]): GroupStat[] {
   );
 }
 
-/** Средние показатели по типу текста (Words / Sentences). */
+const CONTENT_TYPE_ORDER: ContentType[] = ['words', 'sentences', 'quotes', 'passages'];
+
+/** Средние показатели по типу текста (Words / Sentences / Quotes / Passages). */
 export function statsByContentType(entries: HistoryEntry[]): GroupStat[] {
   return groupBy(
     entries,
     (e) => e.contentType,
-    ['words', 'sentences'],
-    (k) => (k === 'words' ? 'Words' : 'Sentences'),
+    CONTENT_TYPE_ORDER,
+    (k) => contentTypeLabel(k),
     (k) => k,
   );
 }

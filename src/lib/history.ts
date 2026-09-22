@@ -3,6 +3,8 @@
  * Хранилище инъектируется — так модуль легко тестировать и переиспользовать.
  */
 
+import type { ContentType } from './dictionary';
+
 export interface HistoryEntry {
   id: string;
   timestamp: number;
@@ -12,7 +14,7 @@ export interface HistoryEntry {
   accuracy: number;
   elapsedMs: number;
   language: string;
-  contentType: string;
+  contentType: ContentType;
   seconds: number | null;
 }
 
