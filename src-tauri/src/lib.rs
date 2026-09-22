@@ -112,7 +112,10 @@ async fn generate_word_list(app: tauri::AppHandle, lang: String, topic: String) 
          Return ONLY a JSON array of strings. No prose, no markdown, no punctuation, no spaces."
     );
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .map_err(|e| format!("client error: {e}"))?;
     let url = format!("{}/chat/completions", settings.base_url.trim_end_matches('/'));
     let resp = client
         .post(&url)
