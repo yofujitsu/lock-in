@@ -15,6 +15,18 @@ export interface ChangelogEntry {
  */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.5.0',
+    date: '2026-09-22',
+    changes: [
+      {
+        type: 'Added',
+        items: [
+          'AI word-list generator: type a custom topic and generate words with your own LLM API key.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.4.0',
     date: '2026-09-22',
     changes: [
