@@ -110,10 +110,29 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
 
 const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
+const AI_SETTINGS_KEY = 'ai.settings';
+
+function loadAiSettingsLocal(): AiSettings {
+  try {
+    const raw = defaultStorage().getItem(AI_SETTINGS_KEY);
+    return raw ? { ...DEFAULT_AI_SETTINGS, ...(JSON.parse(raw) as Partial<AiSettings>) } : { ...DEFAULT_AI_SETTINGS };
+  } catch {
+    return { ...DEFAULT_AI_SETTINGS };
+  }
+}
+
+function saveAiSettingsLocal(settings: AiSettings): void {
+  try {
+    defaultStorage().setItem(AI_SETTINGS_KEY, JSON.stringify(settings));
+  } catch {
+    // ignore (private mode и т.п.)
+  }
+}
+
 export async function loadAiSettings(
   invokeFn: typeof invoke = invoke,
 ): Promise<AiSettings> {
-  if (!isTauri()) return { ...DEFAULT_AI_SETTINGS };
+  if (!isTauri()) return loadAiSettingsLocal();
   return invokeFn<AiSettings>('get_ai_settings');
 }
 
@@ -121,7 +140,10 @@ export async function saveAiSettings(
   settings: AiSettings,
   invokeFn: typeof invoke = invoke,
 ): Promise<void> {
-  if (!isTauri()) return;
+  if (!isTauri()) {
+    saveAiSettingsLocal(settings);
+    return;
+  }
   await invokeFn('set_ai_settings', { settings });
 }
 
@@ -130,6 +152,34 @@ export interface GenerateCustomWordsDeps {
   loadSettings?: () => Promise<AiSettings>;
   storage?: StorageLike;
   force?: boolean;
+  fetchFn?: typeof fetch;
+}
+
+/** Браузерный (не-Tauri) путь: прямой fetch к OpenAI-совместимому endpoint. */
+export async function fetchWordList(
+  settings: AiSettings,
+  lang: Language,
+  topic: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<string> {
+  const url = `${settings.baseUrl.replace(/\/+$/, '')}/chat/completions`;
+  const res = await fetchFn(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
+    body: JSON.stringify({
+      model: settings.model,
+      messages: [
+        { role: 'system', content: 'You return only a JSON array of lowercase single words.' },
+        { role: 'user', content: `Generate a list of 80 single words about "${topic}" in the ${lang} language. Return ONLY a JSON array of strings. No prose, no markdown, no punctuation, no spaces.` },
+      ],
+      temperature: 0.7,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`API error ${res.status}: ${await res.text()}`);
+  }
+  const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  return data.choices?.[0]?.message?.content ?? '';
 }
 
 export async function generateCustomWords(
@@ -140,6 +190,7 @@ export async function generateCustomWords(
   const invokeFn = deps.invokeFn ?? invoke;
   const loadSettings = deps.loadSettings ?? (() => loadAiSettings(invokeFn));
   const storage = deps.storage ?? defaultStorage();
+  const fetchFn = deps.fetchFn ?? fetch;
 
   if (!deps.force) {
     const cached = getCustomList(lang, topic, storage);
@@ -151,7 +202,10 @@ export async function generateCustomWords(
     throw new Error('Set your API key in the AI settings first.');
   }
 
-  const raw = await invokeFn<string>('generate_word_list', { lang, topic });
+  const raw = isTauri()
+    ? await invokeFn<string>('generate_word_list', { lang, topic })
+    : await fetchWordList(settings, lang, topic, fetchFn);
+
   const words = sanitizeWordList(raw, lang);
   if (words.length === 0) throw new Error('The model returned no usable words.');
   setCustomList(lang, topic, words, storage);

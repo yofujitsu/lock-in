@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import {
   customListKey,
+  fetchWordList,
   generateCustomWords,
   getCustomList,
   loadAiSettings,
@@ -134,5 +135,45 @@ describe('generateCustomWords', () => {
     });
     expect(words).toEqual(['sail']);
     expect(called).toBe(false);
+  });
+});
+
+describe('fetchWordList', () => {
+  const settings = { baseUrl: 'http://x/v1', model: 'm', apiKey: 'k' };
+
+  it('возвращает content при ok-ответе', async () => {
+    const fakeFetch = (async () => ({
+      ok: true,
+      status: 200,
+      text: async () => '',
+      json: async () => ({ choices: [{ message: { content: '["sail","anchor"]' } }] }),
+    })) as unknown as typeof fetch;
+    await expect(fetchWordList(settings, 'en', 'sailing', fakeFetch)).resolves.toBe('["sail","anchor"]');
+  });
+
+  it('бросает понятную ошибку при HTTP-ошибке', async () => {
+    const fakeFetch = (async () => ({
+      ok: false,
+      status: 401,
+      text: async () => 'Invalid API key',
+      json: async () => ({}),
+    })) as unknown as typeof fetch;
+    await expect(fetchWordList(settings, 'en', 'sailing', fakeFetch)).rejects.toThrow(/401/);
+  });
+});
+
+describe('browser fallback (no Tauri)', () => {
+  it('loadAiSettings читает localStorage в браузере', async () => {
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('localStorage', memStorage({ 'ai.settings': JSON.stringify({ baseUrl: 'http://x/v1', model: 'm', apiKey: 'k' }) }));
+    await expect(loadAiSettings()).resolves.toEqual({ baseUrl: 'http://x/v1', model: 'm', apiKey: 'k' });
+  });
+
+  it('saveAiSettings пишет в localStorage в браузере', async () => {
+    vi.stubGlobal('window', {});
+    const store = memStorage();
+    vi.stubGlobal('localStorage', store);
+    await saveAiSettings({ baseUrl: 'b', model: 'm', apiKey: 'k' });
+    expect(store.getItem('ai.settings')).toBe(JSON.stringify({ baseUrl: 'b', model: 'm', apiKey: 'k' }));
   });
 });
