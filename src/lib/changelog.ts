@@ -15,6 +15,19 @@ export interface ChangelogEntry {
  */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.4.0',
+    date: '2026-09-22',
+    changes: [
+      {
+        type: 'Added',
+        items: [
+          'Thematic typing content: quotes, passages, and thematic word lists (programming, tech).',
+          'Punctuation in sentences, quotes, and passages; typographic quotes and dashes are typeable with standard keys.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.3.0',
     date: '2026-09-20',
     changes: [
