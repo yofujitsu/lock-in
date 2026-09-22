@@ -10,6 +10,7 @@ import {
 import { BarChart } from './charts/BarChart';
 import { LineChart } from './charts/LineChart';
 import { formatTime } from '../lib/format';
+import { contentTypeLabel } from '../lib/dictionary';
 
 interface Props {
   history: HistoryEntry[];
@@ -98,7 +99,7 @@ export function Profile({ history, onClear }: Props) {
                 <td>{Math.round(h.accuracy * 100)}%</td>
                 <td>{formatTime(h.elapsedMs)}</td>
                 <td>{h.language.toUpperCase()}</td>
-                <td>{h.contentType === 'sentences' ? 'Sentences' : 'Words'}</td>
+                <td>{contentTypeLabel(h.contentType)}</td>
                 <td>{h.seconds === null ? 'Free' : `${h.seconds}s`}</td>
               </tr>
             ))}

@@ -615,6 +615,12 @@ button:focus-visible {
   align-items: center;
 }
 
+.attribution {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
 .kbd {
   display: inline-block;
   padding: 3px 7px;

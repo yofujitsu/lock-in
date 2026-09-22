@@ -1,6 +1,7 @@
 import type { TypingMetrics } from '../lib/metrics';
 import type { HistoryEntry } from '../lib/history';
 import { formatTime } from '../lib/format';
+import { contentTypeLabel } from '../lib/dictionary';
 
 interface Props {
   metrics: TypingMetrics;
@@ -55,7 +56,7 @@ export function Results({ metrics, onRestart, history }: Props) {
                   <td>{Math.round(h.accuracy * 100)}%</td>
                   <td>{formatTime(h.elapsedMs)}</td>
                   <td>{h.language.toUpperCase()}</td>
-                  <td>{h.contentType === 'sentences' ? 'Sentences' : 'Words'}</td>
+                  <td>{contentTypeLabel(h.contentType)}</td>
                   <td>{h.seconds === null ? 'Free' : `${h.seconds}s`}</td>
                 </tr>
               ))}

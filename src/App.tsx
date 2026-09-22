@@ -9,10 +9,12 @@ import { StylePanel } from './components/StylePanel';
 import { useStyle } from './hooks/useStyle';
 import { resolveTheme } from './lib/style';
 import {
-  generateSentences,
-  generateWords,
+  generateText,
+  wordTopicLabel,
+  WORD_TOPICS,
   type ContentType,
   type Language,
+  type WordTopic,
 } from './lib/dictionary';
 import { addHistoryEntry, clearHistory, loadHistory, type HistoryEntry } from './lib/history';
 import { APP_VERSION } from './lib/changelog';
@@ -37,15 +39,6 @@ function openExternal(url: string): void {
   }
 }
 
-function buildText(language: Language, contentType: ContentType, seconds: number | null): string {
-  if (contentType === 'sentences') {
-    const count = seconds === null ? 4 : Math.max(4, Math.ceil(seconds / 12));
-    return generateSentences(language, count);
-  }
-  const count = seconds === null ? 80 : Math.max(80, Math.min(seconds * 2, 400));
-  return generateWords(language, count);
-}
-
 export default function App() {
   const { style, update, selectPalette, reset } = useStyle();
   const [view, setView] = useState<View>('practice');
@@ -53,6 +46,7 @@ export default function App() {
   const [seconds, setSeconds] = useState(30);
   const [language, setLanguage] = useState<Language>('en');
   const [contentType, setContentType] = useState<ContentType>('words');
+  const [wordTopic, setWordTopic] = useState<WordTopic>('general');
   const [nonce, setNonce] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
   const [styleOpen, setStyleOpen] = useState(false);
@@ -90,8 +84,8 @@ export default function App() {
   }, [styleOpen]);
 
   const text = useMemo(
-    () => buildText(language, contentType, mode === 'timed' ? seconds : null),
-    [language, contentType, seconds, mode, nonce],
+    () => generateText(language, contentType, mode === 'timed' ? seconds : null, wordTopic),
+    [language, contentType, seconds, mode, nonce, wordTopic],
   );
 
   const handleFinish = useCallback((entry: HistoryEntry) => {
@@ -245,8 +239,36 @@ export default function App() {
                     >
                       Sentences
                     </button>
+                    <button
+                      className={contentType === 'quotes' ? 'active' : ''}
+                      onClick={select(() => setContentType('quotes'))}
+                    >
+                      Quotes
+                    </button>
+                    <button
+                      className={contentType === 'passages' ? 'active' : ''}
+                      onClick={select(() => setContentType('passages'))}
+                    >
+                      Passages
+                    </button>
                   </div>
                 </div>
+                {contentType === 'words' && (
+                  <div className="group">
+                    <div className="group-label">Topic</div>
+                    <div className="seg">
+                      {WORD_TOPICS.map((t) => (
+                        <button
+                          key={t}
+                          className={wordTopic === t ? 'active' : ''}
+                          onClick={select(() => setWordTopic(t))}
+                        >
+                          {wordTopicLabel(t)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -255,7 +277,8 @@ export default function App() {
             <EchoMode suspended={styleOpen} />
           ) : (
             <TypingTest
-              text={text}
+              text={text.text}
+              attribution={text.attribution}
               seconds={sessionSeconds}
               language={language}
               contentType={contentType}

@@ -9,6 +9,7 @@ import type { HistoryEntry } from '../lib/history';
 
 interface Props {
   text: string;
+  attribution?: string;
   seconds: number | null;
   language: Language;
   contentType: ContentType;
@@ -17,7 +18,7 @@ interface Props {
   suspended: boolean;
 }
 
-export function TypingTest({ text, seconds, language, contentType, history, onFinish, suspended }: Props) {
+export function TypingTest({ text, attribution, seconds, language, contentType, history, onFinish, suspended }: Props) {
   const { snapshot, input, restart, deleteWord, skipWord } = useTypingSession({ text, seconds });
 
   const onKeyDown = useCallback(
@@ -111,6 +112,8 @@ export function TypingTest({ text, seconds, language, contentType, history, onFi
           </div>
         )}
       </div>
+
+      {attribution && <p className="attribution">{attribution}</p>}
 
       {finished ? (
         <Results metrics={snapshot.metrics} onRestart={restart} history={history} />
